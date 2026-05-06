@@ -7,8 +7,14 @@ const routes = [
         path: '',
         component: () => import('pages/IndexPage.vue'),
       },
+
       {
         path: 'pessoas/form',
+        component: () => import('pages/pessoas/CreateEditPessoa.vue'),
+      },
+
+      {
+        path: 'pessoas/form/:id',
         component: () => import('pages/pessoas/CreateEditPessoa.vue'),
       },
     ],
