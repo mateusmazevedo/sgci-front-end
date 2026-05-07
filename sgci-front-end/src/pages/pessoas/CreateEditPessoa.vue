@@ -1,162 +1,138 @@
 <template>
   <div>
-    <q-form
-      ref="formPessoa"
-      greedy
-      @submit.prevent="salvar"
-      class="bg"
-    >
+    <q-form ref="formPessoa" greedy @submit.prevent="cadastrarOuAtualizar" class="bg">
+
       <div class="main-container">
+
         <div class="q-mb-md">
           <h4 class="title">
-            {{ id ? 'Editar Pessoa' : 'Cadastrar Pessoa' }}
+            {{ pessoa.id ? 'Editar Pessoa' : 'Cadastrar Pessoa' }}
           </h4>
           <div class="divisor-inline"></div>
         </div>
 
         <!-- DADOS BÁSICOS -->
-        <div class="q-pa-md" style="margin-top: -30px">
+        <div class="q-pa-md">
+
           <h4 class="subTitulo">Dados Básicos</h4>
 
           <div class="row q-col-gutter-lg">
             <div class="col-7">
-              <q-input
-                v-model="pessoa.nome"
-                label="Nome"
-                dense
-                :rules="[vRequired]"
-                lazy-rules
-              />
+              <q-input v-model="pessoa.nome" label="Nome" dense />
             </div>
 
             <div class="col-2">
-              <q-input
-                v-model="pessoa.documento"
-                label="Documento"
-                dense
-                :rules="[vRequired]"
-                lazy-rules
-              />
+              <q-input v-model="pessoa.documento" label="Documento" dense />
             </div>
 
             <div class="col-3">
-              <q-input
-                v-model="pessoa.profissao"
-                label="Profissão"
-                dense
-                :rules="[vRequired]"
-                lazy-rules
+              <q-input v-model="pessoa.profissao" label="Profissão" dense />
+            </div>
+          </div>
+
+          <div class="row q-col-gutter-lg q-mt-md">
+
+            <div class="col-7">
+              <q-option-group
+                v-model="pessoa.tipo"
+                :options="optionsTipoPessoa"
+                type="radio"
+                inline
               />
             </div>
-          </div>
 
-          <!-- OPÇÕES -->
-          <div class="row q-col-gutter-lg q-mt-lg">
-            <div class="col-md-7">
-              <q-field
-                dense
-                label="Tipo de Pessoa"
-                borderless
-                stack-label
-                :rules="[vRequired]"
-                :model-value="pessoa.tipo"
-              >
-                <q-option-group
-                  v-model="pessoa.tipo"
-                  :options="optionsTipoPessoa"
-                  type="radio"
-                  inline
-                />
-              </q-field>
+            <div class="col-5">
+              <q-option-group
+                v-model="pessoa.estadoCivil"
+                :options="optionsEstadoCivil"
+                type="radio"
+                inline
+              />
             </div>
 
-            <div class="col-md-5">
-              <q-field
-                dense
-                label="Estado Civil"
-                borderless
-                stack-label
-                :rules="[vRequired]"
-                :model-value="pessoa.estadoCivil"
-              >
-                <q-option-group
-                  v-model="pessoa.estadoCivil"
-                  :options="optionsEstadoCivil"
-                  type="radio"
-                  inline
-                />
-              </q-field>
-            </div>
           </div>
+
         </div>
 
         <!-- ENDEREÇO -->
-        <div class="q-pa-md" style="margin-top: -30px">
+        <div class="q-pa-md">
+
           <h4 class="subTitulo">Endereço</h4>
 
           <div class="row q-col-gutter-lg">
+
             <div class="col-2">
-              <q-input v-model="pessoa.endereco.cep" label="CEP" dense :rules="[vRequired]" lazy-rules />
+              <q-input v-model="pessoa.endereco.cep" label="CEP" dense />
             </div>
 
             <div class="col-3">
-              <q-input v-model="pessoa.endereco.estado" label="Estado" dense :rules="[vRequired]" lazy-rules />
+              <q-input v-model="pessoa.endereco.estado" label="Estado" dense />
             </div>
 
             <div class="col-4">
-              <q-input v-model="pessoa.endereco.cidade" label="Cidade" dense :rules="[vRequired]" lazy-rules />
+              <q-input v-model="pessoa.endereco.cidade" label="Cidade" dense />
             </div>
 
             <div class="col-3">
-              <q-input v-model="pessoa.endereco.bairro" label="Bairro" dense :rules="[vRequired]" lazy-rules />
+              <q-input v-model="pessoa.endereco.bairro" label="Bairro" dense />
             </div>
 
             <div class="col-9">
-              <q-input v-model="pessoa.endereco.rua" label="Rua" dense :rules="[vRequired]" lazy-rules />
+              <q-input v-model="pessoa.endereco.rua" label="Rua" dense />
             </div>
 
             <div class="col-3">
-              <q-input v-model="pessoa.endereco.numero" label="Número" dense :rules="[vRequired]" lazy-rules />
+              <q-input v-model="pessoa.endereco.numero" label="Número" dense />
             </div>
+
           </div>
+
         </div>
 
         <!-- BOTÕES -->
-        <div class="row justify-end q-mt-md">
-          <q-btn label="Voltar" flat class="q-mr-sm" />
+        <div class="row q-mt-md">
 
-          <q-btn
-            :label="id ? 'Atualizar' : 'Cadastrar'"
-            type="submit"
-            color="primary"
-          />
+          <div class="col-12 text-right">
+
+            <q-btn
+              label="Voltar"
+              flat
+              class="q-mr-sm"
+              @click="voltar"
+            />
+
+            <q-btn
+              type="submit"
+              color="primary"
+              :label="pessoa.id ? 'Atualizar' : 'Cadastrar'"
+            />
+
+          </div>
+
         </div>
+
       </div>
+
     </q-form>
   </div>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { PessoaService } from 'src/services/sgci-api-service'
-import validators from 'src/validators/validator-set'
-
-const pessoaService = new PessoaService()
+import { useRoute, useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import { pessoaService } from 'src/services/sgci-api-service'
 
 export default {
   name: 'CreateEditPessoa',
 
   setup () {
-    const formPessoa = ref(null)
     const route = useRoute()
-
-    // 🔥 ID vindo da URL (ESSENCIAL)
-    const id = route.params.id
-
-    const { vRequired } = validators
+    const router = useRouter()
+    const $q = useQuasar()
 
     const pessoa = ref({
+      id: null,
       nome: '',
       documento: '',
       profissao: '',
@@ -172,65 +148,71 @@ export default {
       }
     })
 
-    const optionsTipoPessoa = ref([
+    const optionsTipoPessoa = [
       { label: 'Pessoa Física', value: 'PESSOA_FISICA' },
       { label: 'Pessoa Jurídica', value: 'PESSOA_JURIDICA' }
-    ])
+    ]
 
-    const optionsEstadoCivil = ref([
+    const optionsEstadoCivil = [
       { label: 'Casado', value: 'CASADO' },
       { label: 'Solteiro', value: 'SOLTEIRO' },
       { label: 'Divorciado', value: 'DIVORCIADO' }
-    ])
+    ]
 
-    // 🔹 BUSCAR DADOS PARA EDIÇÃO
-    const buscarPessoaParaEdicao = async () => {
+    const carregarPessoa = async () => {
+      const id = route.params.id
       if (!id) return
 
       try {
-        const retorno = await pessoaService.getById(id)
-        pessoa.value = retorno.data
+        const res = await pessoaService.getById(id)
+        pessoa.value = res.data
       } catch (err) {
-        console.error('Erro ao buscar pessoa', err)
+        console.error('Erro ao carregar:', err)
       }
     }
 
-    // 🔹 SALVAR (CREATE OU UPDATE)
-    const salvar = async () => {
-      const form = formPessoa.value
-
-      if (!form) return
-
-      const valid = await form.validate()
-
-      if (!valid) return
-
+    const cadastrarOuAtualizar = async () => {
       try {
-        if (id) {
-          await pessoaService.update(id, pessoa.value)
-          console.log('✔ Atualizado com sucesso')
+        if (pessoa.value.id) {
+          await pessoaService.update(pessoa.value.id, pessoa.value)
+
+          $q.notify({
+            message: 'Atualizado com sucesso!',
+            color: 'positive'
+          })
         } else {
           await pessoaService.create(pessoa.value)
-          console.log('✔ Cadastrado com sucesso')
+
+          $q.notify({
+            message: 'Cadastrado com sucesso!',
+            color: 'positive'
+          })
         }
+
+        router.push('/pessoas')
       } catch (err) {
-        console.error('❌ Erro:', err?.response?.data || err)
+        console.error('Erro salvar:', err)
+        $q.notify({
+          message: 'Erro ao salvar',
+          color: 'negative'
+        })
       }
     }
 
-    // 🔹 EQUIVALENTE AO mounted
+    const voltar = () => {
+      router.push('/pessoas')
+    }
+
     onMounted(() => {
-      buscarPessoaParaEdicao()
+      carregarPessoa()
     })
 
     return {
       pessoa,
-      formPessoa,
-      salvar,
       optionsTipoPessoa,
       optionsEstadoCivil,
-      vRequired,
-      id
+      cadastrarOuAtualizar,
+      voltar
     }
   }
 }

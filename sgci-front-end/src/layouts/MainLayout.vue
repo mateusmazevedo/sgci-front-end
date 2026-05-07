@@ -33,7 +33,7 @@ const linksList = [
     title: 'Gerenciar Pessoas',
     caption: 'Físicas e Juridicas',
     icon: 'group',
-    link: 'https://quasar.dev',
+    link: '/pessoas',
   },
   {
     title: 'Gerenciar Imóveis',

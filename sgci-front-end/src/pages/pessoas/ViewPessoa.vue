@@ -1,187 +1,107 @@
 <template>
   <div>
-    <div class="main-container">
+    <q-form greedy class="bg">
 
-      <!-- TÍTULO -->
-      <div class="q-mb-md">
-        <h4 class="title">Visualizar Pessoa</h4>
-        <div class="divisor-inline"></div>
+      <div class="main-container">
+
+        <div class="q-mb-md">
+          <h4 class="title">Visualizar Pessoa</h4>
+          <div class="divisor-inline"></div>
+        </div>
+
+        <div class="q-pa-md">
+
+          <h4 class="subTitulo">Dados Básicos</h4>
+
+          <div class="row q-col-gutter-lg">
+            <div class="col-5">
+              Nome: {{ pessoa?.nome }}
+            </div>
+            <div class="col-4">
+              Profissão: {{ pessoa?.profissao }}
+            </div>
+            <div class="col-3">
+              Documento: {{ pessoa?.documento }}
+            </div>
+            <div class="col-5">
+              Tipo: {{ formatarPessoa(pessoa?.tipo) }}
+            </div>
+            <div class="col-4">
+              Estado Civil: {{ formatarEstadoCivil(pessoa?.estadoCivil) }}
+            </div>
+          </div>
+
+        </div>
+
+        <div class="q-pa-md">
+
+          <h4 class="subTitulo">Endereço</h4>
+
+          <div class="row q-col-gutter-lg">
+            <div class="col-5">CEP: {{ pessoa?.endereco?.cep }}</div>
+            <div class="col-4">Estado: {{ pessoa?.endereco?.estado }}</div>
+            <div class="col-3">Cidade: {{ pessoa?.endereco?.cidade }}</div>
+            <div class="col-5">Bairro: {{ pessoa?.endereco?.bairro }}</div>
+            <div class="col-5">Rua: {{ pessoa?.endereco?.rua }}</div>
+            <div class="col-3">Número: {{ pessoa?.endereco?.numero }}</div>
+          </div>
+
+        </div>
+
+        <div class="row q-mt-md">
+          <div class="col-12 text-right">
+            <q-btn label="Voltar" @click="voltar" />
+          </div>
+        </div>
+
       </div>
 
-      <!-- DADOS BÁSICOS -->
-      <div class="cardVisualizacao q-mb-md">
-        <h4 class="subTitulo">Dados Básicos</h4>
-
-        <div class="itemLinha">
-          <span class="tituloVisualizar">Nome</span>
-          <span class="valorVisualizar">{{ pessoa.nome }}</span>
-        </div>
-
-        <div class="itemLinha">
-          <span class="tituloVisualizar">Documento</span>
-          <span class="valorVisualizar">{{ pessoa.documento }}</span>
-        </div>
-
-        <div class="itemLinha">
-          <span class="tituloVisualizar">Profissão</span>
-          <span class="valorVisualizar">{{ pessoa.profissao }}</span>
-        </div>
-
-        <div class="itemLinha">
-          <span class="tituloVisualizar">Tipo de Pessoa</span>
-          <span class="valorVisualizar">
-            {{ formatTipoPessoa(pessoa.tipo) }}
-          </span>
-        </div>
-
-        <div class="itemLinha">
-          <span class="tituloVisualizar">Estado Civil</span>
-          <span class="valorVisualizar">
-            {{ formatEstadoCivil(pessoa.estadoCivil) }}
-          </span>
-        </div>
-      </div>
-
-      <!-- ENDEREÇO -->
-      <div class="cardVisualizacao q-mb-md">
-        <h4 class="subTitulo">Endereço</h4>
-
-        <div class="itemLinha">
-          <span class="tituloVisualizar">CEP</span>
-          <span class="valorVisualizar">{{ pessoa.endereco.cep }}</span>
-        </div>
-
-        <div class="itemLinha">
-          <span class="tituloVisualizar">Estado</span>
-          <span class="valorVisualizar">{{ pessoa.endereco.estado }}</span>
-        </div>
-
-        <div class="itemLinha">
-          <span class="tituloVisualizar">Cidade</span>
-          <span class="valorVisualizar">{{ pessoa.endereco.cidade }}</span>
-        </div>
-
-        <div class="itemLinha">
-          <span class="tituloVisualizar">Bairro</span>
-          <span class="valorVisualizar">{{ pessoa.endereco.bairro }}</span>
-        </div>
-
-        <div class="itemLinha">
-          <span class="tituloVisualizar">Rua</span>
-          <span class="valorVisualizar">{{ pessoa.endereco.rua }}</span>
-        </div>
-
-        <div class="itemLinha">
-          <span class="tituloVisualizar">Número</span>
-          <span class="valorVisualizar">{{ pessoa.endereco.numero }}</span>
-        </div>
-      </div>
-
-      <!-- BOTÃO -->
-      <div class="row justify-end q-mt-md">
-        <q-btn label="Voltar" flat @click="$router.back()" />
-      </div>
-
-    </div>
+    </q-form>
   </div>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { PessoaService } from 'src/services/sgci-api-service'
-
-const pessoaService = new PessoaService()
+import { useRoute, useRouter } from 'vue-router'
+import { pessoaService } from 'src/services/sgci-api-service'
 
 export default {
-  name: 'ViewPessoa',
-
   setup () {
     const route = useRoute()
+    const router = useRouter()
 
-    const pessoa = ref({
-      nome: '',
-      documento: '',
-      profissao: '',
-      tipo: null,
-      estadoCivil: null,
-      endereco: {
-        cep: '',
-        estado: '',
-        cidade: '',
-        bairro: '',
-        rua: '',
-        numero: ''
-      }
-    })
+    const pessoa = ref(null)
 
-    const buscarPessoa = async () => {
+    const carregar = async () => {
       const id = route.params.id
       if (!id) return
 
-      try {
-        const { data } = await pessoaService.getById(id)
-        pessoa.value = data
-      } catch (err) {
-        console.error('Erro ao buscar pessoa', err)
-      }
+      const res = await pessoaService.getById(id)
+      pessoa.value = res.data
     }
 
-    const formatTipoPessoa = (tipo) => {
-      if (tipo === 'PESSOA_FISICA') return 'Pessoa Física'
-      if (tipo === 'PESSOA_JURIDICA') return 'Pessoa Jurídica'
+    const voltar = () => {
+      router.push('/pessoas')
+    }
+
+    const formatarPessoa = (v) =>
+      v === 'PESSOA_JURIDICA' ? 'Pessoa Jurídica' : 'Pessoa Física'
+
+    const formatarEstadoCivil = (v) => {
+      if (v === 'CASADO') return 'Casado'
+      if (v === 'SOLTEIRO') return 'Solteiro'
+      if (v === 'DIVORCIADO') return 'Divorciado'
       return ''
     }
 
-    const formatEstadoCivil = (estado) => {
-      if (estado === 'CASADO') return 'Casado'
-      if (estado === 'SOLTEIRO') return 'Solteiro'
-      if (estado === 'DIVORCIADO') return 'Divorciado'
-      return ''
-    }
-
-    onMounted(() => {
-      buscarPessoa()
-    })
+    onMounted(carregar)
 
     return {
       pessoa,
-      formatTipoPessoa,
-      formatEstadoCivil
+      voltar,
+      formatarPessoa,
+      formatarEstadoCivil
     }
   }
 }
 </script>
-
-<style scoped>
-.cardVisualizacao {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-}
-
-.itemLinha {
-  display: flex;
-  flex-direction: column;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.itemLinha:last-child {
-  border-bottom: none;
-}
-
-.tituloVisualizar {
-  font-size: 11px;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-}
-
-.valorVisualizar {
-  font-size: 15px;
-  font-weight: 500;
-  color: #111827;
-}
-</style>
